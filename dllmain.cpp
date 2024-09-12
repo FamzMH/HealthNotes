@@ -14,7 +14,7 @@
 #include "ghidra_export.h"
 #include "util.h"
 
-struct Monster{
+struct Monster {
 	int Id;
 	std::string Name;
 	float Capture;
@@ -30,13 +30,14 @@ static std::mutex lock;
 static struct Monster monsters[102];
 static std::string language;
 static std::string omessages[5];
-static bool isInit=false;
+static bool isInit = false;
 static bool displayCapture = true;
+static bool displayCrown = true;
 
 using namespace loader;
 
 void showMessage(std::string message) {
-	MH::Chat::ShowGameMessage(*(undefined**)MH::Chat::MainPtr, (undefined*) &message[0], -1, -1, 0);
+	MH::Chat::ShowGameMessage(*(undefined**)MH::Chat::MainPtr, (undefined*)&message[0], -1, -1, 0);
 }
 
 void handleMonsterCreated(int id, undefined* monster)
@@ -162,12 +163,13 @@ __declspec(dllexport) extern bool Load()
 	}
 
 	LOG(INFO) << "Health notes loading";
-	
+
 	nlohmann::json ConfigFile = nlohmann::json::object();
 	file >> ConfigFile;
 
 	language = ConfigFile["Language"];
 	displayCapture = ConfigFile["DisplayCapture"];
+	displayCrown = ConfigFile["DisplayCrown"];
 	omessages[0] = ConfigFile["Capture"];
 	omessages[1] = ConfigFile["Bigcrown"];
 	omessages[2] = ConfigFile["Bigsilver"];
@@ -225,19 +227,19 @@ __declspec(dllexport) extern bool Load()
 				for (auto [monster, queue] : monsterMessages) {
 					checkHealth(monster);
 				}
-				if (isInit) {
+				if (isInit && displayCrown) {
 					for (auto [monster, isChecked] : monsterChecked) {
 						if (!isChecked) {
 							checkMonsterSize(monster);
 							monsterChecked[monster] = true;
 						}
-						
+
 					}
-					
+
 				}
 			}
 		}
-	}).detach();
+		}).detach();
 
 	MH_ApplyQueued();
 
@@ -251,6 +253,6 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 {
 	if (ul_reason_for_call == DLL_PROCESS_ATTACH)
 		return Load();
-    return TRUE;
+	return TRUE;
 }
 
