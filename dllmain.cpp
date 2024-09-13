@@ -59,6 +59,10 @@ void handleMonsterCreated(int id, undefined* monster)
 				monsterMessages[monster].push(monsterMessages[monster].front());
 				monsterMessages[monster].pop();
 			}
+
+			if (!isAdd) {
+				monsterMessages[monster].push({ monsters[id].Capture / 100, omessages[0] });
+			}
 		}
 		isInit = false;
 		monsterChecked[monster] = false;
